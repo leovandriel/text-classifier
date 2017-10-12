@@ -1,0 +1,129 @@
+#!/usr/bin/env python
+
+import argparse
+import json
+import hashlib
+import os.path
+
+from src.classify.sentiment import Sentiment
+
+classifier_version = '0.0.1'  # changing version will invalidate md5 sums
+
+
+def load_config(path):
+    with open(path, 'r') as file:
+        data = json.load(file)
+    return data
+
+
+def save_config(path, data):
+    with open(path, 'w') as file:
+        json.dump(data, file, indent=4)
+
+
+def load_doc(path):
+    with open(path, 'r', encoding='utf-8') as file:
+        data = file.readlines()
+    lines = [l[:-1] for l in data]
+    return lines
+
+
+def save_doc(path, lines):
+    data = ['%s\n' % l for l in lines]
+    with open(path, 'w', encoding='utf-8') as file:
+        lines = file.writelines(data)
+
+
+def md5_doc(path):
+    md5 = hashlib.md5()
+    md5.update(classifier_version.encode('utf-8'))
+    with open(path, 'r') as file:
+        for line in file.readlines():
+            md5.update(line.encode('utf-8'))
+    digest = md5.hexdigest()
+    return digest
+
+
+def annotate(doc, model, root):
+    print('annotating: "%s"' % doc.get('title', '<no-title>'))
+    lines = load_doc(os.path.join(root, doc['text']))
+    logistic, single = model.infer_sentiment(lines)
+
+    mean_logistic = Sentiment.mean_sentiment(lines, logistic)
+    mean_single = Sentiment.mean_sentiment(lines, single)
+    weighted_logistic = Sentiment.weighted_sentiment(lines, logistic)
+    weighted_single = Sentiment.weighted_sentiment(lines, single)
+    summary = 'mean:%02.0f/%02.0f weighted:%02.0f/%02.0f' % (mean_logistic,
+                                                             mean_single,
+                                                             weighted_logistic,
+                                                             weighted_single)
+    print('summary: %s' % summary)
+
+    annotated_path = 'annotated/%s.txt' % doc['id']
+    print('writing: %s' % annotated_path)
+    annotated = model.annotate(lines, logistic, single)
+    annotated.extend(['', '[%s]' % summary])
+    save_doc(os.path.join(root, annotated_path), annotated)
+
+    annotation = {
+        'annotated': annotated_path,
+        'summary': summary,
+        'mean': {
+            'logistic': round(mean_logistic, 2),
+            'single': round(mean_single, 2)
+        },
+        'weighted': {
+            'logistic': round(weighted_logistic, 2),
+            'single': round(weighted_single, 2)
+        },
+    }
+    return annotation
+
+
+def run_sentiment(config, update=True):
+    model = Sentiment()
+    dict = load_config(config)
+    print('%i documents listed' % len(dict['docs']))
+    root = os.path.dirname(config)
+    dict['version'] = classifier_version
+    count = 0
+    avg_mean_logistic = 0
+    avg_mean_single = 0
+    avg_weighted_logistic = 0
+    avg_weighted_single = 0
+    for doc in dict['docs']:
+        if doc.get('skip', False) is True:
+            print('skipping %s' % doc.get('title', '<no-title>'))
+            continue
+        md5 = md5_doc(os.path.join(root, doc['text']))
+        if update and ('sentiment' in doc) and (
+                'md5' in doc['sentiment']) and doc['sentiment']['md5'] == md5:
+            print('found %s' % doc.get('title', '<no-title>'))
+            annotation = doc['sentiment']
+        else:
+            annotation = annotate(doc, model, root)
+            annotation['md5'] = md5
+            doc['sentiment'] = annotation
+            save_config(config, dict)
+        avg_mean_logistic += annotation['mean']['logistic']
+        avg_mean_single += annotation['mean']['single']
+        avg_weighted_logistic += annotation['weighted']['logistic']
+        avg_weighted_single += annotation['weighted']['single']
+        count += 1
+    if count > 0:
+        print('overall average mean:%02.0f/%02.0f weighted:%02.0f/%02.0f' %
+              (avg_mean_logistic / count, avg_mean_single / count,
+               avg_weighted_logistic / count, avg_weighted_single / count))
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Add sentiment annotation to text')
+    parser.add_argument(
+        '--config', required=True, help='path of the config json')
+    parser.add_argument('--all', action='store_true', help='re-annotate all')
+    args = parser.parse_args()
+    run_sentiment(args.config, update=(not args.all))
+
+
+if __name__ == '__main__': main()
