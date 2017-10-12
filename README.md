@@ -11,6 +11,8 @@
 
 # Sentiment
 
+This classifier runs an LSTM model based on the work by [OpenAI](https://blog.openai.com/unsupervised-sentiment-neuron/), described in [Learning to Generate Reviews and Discovering Sentiment](https://arxiv.org/abs/1704.01444).
+
 To classify sentiment, run:
 
     ./classify --config config.json
@@ -54,3 +56,13 @@ These values indicate:
 - `single`: the normalized value of the sentiment neuron (nr 2388)
 
 This results in four different metrics for sentiment: `mean_logistic`, `weighted_single`, `weighted_logistic` and `weighted_single`. The accuracy of these values depends on aspects like writing style, paragraph length, vocabulary.
+
+See `data/example.json` for an example configuration and annotation. To get started, just run:
+
+    ./classify --config data/example.json
+
+This skips over documents that were already annotated based on the md5 checksum. To force re-annotate all documents, add `--all`:
+
+    ./classify --config data/example.json --all
+
+To indicate a document should not be annotated, add `"skip": true` to the configuration.

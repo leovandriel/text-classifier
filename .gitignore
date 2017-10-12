@@ -104,3 +104,10 @@ ENV/
 data/text/*
 data/annotated/*
 data/*.json
+!data/text/positive.txt
+!data/text/negative.txt
+!data/text/great-expectations.txt
+!data/annotated/positive.txt
+!data/annotated/negative.txt
+!data/annotated/great-expectations.txt
+!data/example.json

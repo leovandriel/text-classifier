@@ -1,0 +1,65 @@
+{
+    "docs": [
+        {
+            "id": "positive",
+            "title": "So Great",
+            "text": "text/positive.txt",
+            "sentiment": {
+                "annotated": "annotated/positive.txt",
+                "summary": "mean:100/80 weighted:100/80",
+                "mean": {
+                    "logistic": 99.91,
+                    "single": 79.83
+                },
+                "weighted": {
+                    "logistic": 99.91,
+                    "single": 79.83
+                },
+                "md5": "35b74bc71aacc796094761fbba59cbf0"
+            }
+        },
+        {
+            "id": "negative",
+            "title": "So Bad",
+            "text": "text/negative.txt",
+            "sentiment": {
+                "annotated": "annotated/negative.txt",
+                "summary": "mean:00/08 weighted:00/08",
+                "mean": {
+                    "logistic": 0.0,
+                    "single": 7.52
+                },
+                "weighted": {
+                    "logistic": 0.0,
+                    "single": 7.52
+                },
+                "md5": "b10844c8e9bb8098d7dac687672e596f"
+            }
+        },
+        {
+            "id": "broken-doc",
+            "text": "?.txt",
+            "skip": true
+        },
+        {
+            "id": "great-expectations",
+            "title": "Great Expectations",
+            "url": "https://www.gutenberg.org/files/1400/1400-0.txt",
+            "text": "text/great-expectations.txt",
+            "sentiment": {
+                "annotated": "annotated/great-expectations.txt",
+                "summary": "mean:46/56 weighted:48/55",
+                "mean": {
+                    "logistic": 45.68,
+                    "single": 55.88
+                },
+                "weighted": {
+                    "logistic": 47.97,
+                    "single": 55.12
+                },
+                "md5": "8e547f1029bb6ec8491d326febf234a0"
+            }
+        }
+    ],
+    "version": "0.0.1"
+}
