@@ -1,0 +1,3 @@
+[submodule "src/grds"]
+	path = src/grds
+	url = https://github.com/openai/generating-reviews-discovering-sentiment.git
